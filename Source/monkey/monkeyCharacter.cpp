@@ -34,7 +34,7 @@ AmonkeyCharacter::AmonkeyCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // ...at this rotation rate
 	GetCharacterMovement()->JumpZVelocity = 600.f;
-	GetCharacterMovement()->AirControl = 0.2f;
+	GetCharacterMovement()->AirControl = 0.8f;
 
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
@@ -52,21 +52,17 @@ AmonkeyCharacter::AmonkeyCharacter()
 }
 
 void AmonkeyCharacter::CTick(float deltaTime) {
+	if (GetCharacterMovement()->IsMovingOnGround()) jumpCounter = 0;
 	if (targetPhase == phase) {
 		transforming = false;
 		if (phase == 0) {
-			GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
-			GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // ...at this rotation rate
-			GetCharacterMovement()->JumpZVelocity = 1200.f;
-			GetCharacterMovement()->AirControl = 0.8f;
-			GetCharacterMovement()->MaxAcceleration = 2048.0f;
+			GetCharacterMovement()->JumpZVelocity = 650.0f;
+			GetCharacterMovement()->MaxWalkSpeed = 600.0f;
+			GetCharacterMovement()->MaxAcceleration = 500.0f;
 		}
 		else {
-			GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
-			GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // ...at this rotation rate
-			GetCharacterMovement()->JumpZVelocity = 50.f;
-			GetCharacterMovement()->AirControl = 2.0f;
-			GetCharacterMovement()->MaxAcceleration = 1600.0f;
+			GetCharacterMovement()->JumpZVelocity = 500.f;
+			GetCharacterMovement()->MaxWalkSpeed = 400.0f;
 			GetCharacterMovement()->AddImpulse(FVector(0.0f, 0.0f, 1700.0f*deltaTime));
 		}
 	}
@@ -75,28 +71,15 @@ void AmonkeyCharacter::CTick(float deltaTime) {
 		if (targetPhase == 0) {
 			if (m1 - deltaTime * morphTransSpeed > 0.0f) m1 -= deltaTime * morphTransSpeed;
 			else m1 = 0.0f;
-			/*if (m2 - deltaTime * morphTransSpeed > 0.0f) m2 -= deltaTime * morphTransSpeed;
-			else m2 = 0.0f;
-			if (m3 - deltaTime * morphTransSpeed > 0.0f) m3 -= deltaTime * morphTransSpeed;
-			else m3 = 0.0f;*/
-			if (m1 == 0.0f && m2 == 0.0f && m3 == 0.0f) {
-				phase = 0;
-				//GetMesh()->SetSkeletalMesh(phase0Mesh);
-			}
+			
+			if (m1 == 0.0f && m2 == 0.0f && m3 == 0.0f) phase = 0;
 		}
 		else {
 			if (m1 + deltaTime * morphTransSpeed < 1.0f) m1 += deltaTime * morphTransSpeed;
 			else m1 = 1.0f;
-			/*if (m2 - deltaTime * morphTransSpeed > 0.0f) m2 -= deltaTime * morphTransSpeed;
-			else m2 = 0.0f;
-			if (m3 - deltaTime * morphTransSpeed > 0.0f) m3 -= deltaTime * morphTransSpeed;
-			else m3 = 0.0f;*/
-			if (m1 == 1.0f && m2 == 0.0f && m3 == 0.0f) {
-				phase = 1;
-				//GetMesh()->SetSkeletalMesh(phase1Mesh);
-			}
-		}
-		//GetMesh()->SetMorphTarget("capMorph", m1);
+
+			if (m1 == 1.0f && m2 == 0.0f && m3 == 0.0f) phase = 1;
+		} //GetMesh()->SetMorphTarget("capMorph", m1);
 	}
 }
 
@@ -107,8 +90,8 @@ void AmonkeyCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerIn
 {
 	// Set up gameplay key bindings
 	check(PlayerInputComponent);
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
-	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AmonkeyCharacter::dJump);
+	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AmonkeyCharacter::dStopJumping);
 	
 	PlayerInputComponent->BindAction("Phase0", IE_Pressed, this, &AmonkeyCharacter::toPhase0);
 	PlayerInputComponent->BindAction("Phase1", IE_Pressed, this, &AmonkeyCharacter::toPhase1);
@@ -132,6 +115,21 @@ void AmonkeyCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerIn
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AmonkeyCharacter::OnResetVR);
 }
 
+void AmonkeyCharacter::dJump() {
+	if (GetCharacterMovement()->IsMovingOnGround()) {
+		ACharacter::Jump();
+	}
+	else if (!ACharacter::bPressedJump && !doubleJumping && jumpCounter<airJumps) {
+		GetCharacterMovement()->Velocity.Z = 0.0f;
+		GetCharacterMovement()->AddImpulse(FVector(0.0f, 0.0f, 50.0f));
+		jumpCounter++;
+		doubleJumping = true;
+	}
+}
+void AmonkeyCharacter::dStopJumping() {
+	&ACharacter::StopJumping;
+	doubleJumping = false;
+}
 
 void AmonkeyCharacter::OnResetVR()
 {

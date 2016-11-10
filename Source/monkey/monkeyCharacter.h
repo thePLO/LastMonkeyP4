@@ -52,9 +52,18 @@ public:
 	float m2 = 0.0f;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	float m3 = 0.0f;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool doubleJumping = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	int airJumps = 1;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	int jumpCounter = 0;
+	
 
 protected:
-
+	void dJump(); 
+	void dStopJumping();
 	inline void toPhase0() { if (!transforming) targetPhase = 0; }
 	inline void toPhase1() { if (!transforming) targetPhase = 1; }
 
