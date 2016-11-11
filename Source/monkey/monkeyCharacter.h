@@ -59,7 +59,17 @@ public:
 	int airJumps = 1;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int jumpCounter = 0;
-	
+
+	UPROPERTY(VisibleAnywhere)
+	float acceleration[4] = {0.0f,0.0f,0.0f,0.0f};
+	UPROPERTY(VisibleAnywhere)
+	float maxSpeed[4] = { 0.0f,0.0f,0.0f,0.0f };
+	UPROPERTY(VisibleAnywhere)
+	float jumpSpeed[4] = { 0.0f,0.0f,0.0f,0.0f };
+	UPROPERTY(VisibleAnywhere)
+	float doubleJumpSpeed[4] = { 0.0f,0.0f,0.0f,0.0f };
+	UPROPERTY(VisibleAnywhere)
+	float gliding[4] = { 0.0f,0.0f,0.0f,0.0f };
 
 protected:
 	void dJump(); 

@@ -47,6 +47,12 @@ AmonkeyCharacter::AmonkeyCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+	acceleration[0] = 900.0f; maxSpeed[0] = 600.0f; jumpSpeed[0] = 650.0f; doubleJumpSpeed[0] = 650.0f; gliding[0] = 0.0f;
+	acceleration[1] = 900.0f; maxSpeed[1] = 450.0f; jumpSpeed[1] = 450.0f; doubleJumpSpeed[1] = 0.0f; gliding[1] = -50.0f;
+	acceleration[2] = 500.0f; maxSpeed[2] = 450.0f; jumpSpeed[2] = 450.0f; doubleJumpSpeed[2] = 450.0f; gliding[2] = 0.0f;
+	acceleration[3] = 500.0f; maxSpeed[3] = 800.0f; jumpSpeed[3] = 450.0f; doubleJumpSpeed[3] = 450.0f; gliding[3] = 0.0f;
+
+	GetCharacterMovement()->AirControl = 1.0;
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
@@ -55,30 +61,25 @@ void AmonkeyCharacter::CTick(float deltaTime) {
 	if (GetCharacterMovement()->IsMovingOnGround()) jumpCounter = 0;
 	if (targetPhase == phase) {
 		transforming = false;
-		if (phase == 0) {
-			GetCharacterMovement()->JumpZVelocity = 650.0f;
-			GetCharacterMovement()->MaxWalkSpeed = 600.0f;
-			GetCharacterMovement()->MaxAcceleration = 500.0f;
-		}
-		else {
-			GetCharacterMovement()->JumpZVelocity = 500.f;
-			GetCharacterMovement()->MaxWalkSpeed = 400.0f;
-			if(GetCharacterMovement()->Velocity.Z<0.0f) GetCharacterMovement()->AddImpulse(FVector(0.0f, 0.0f, 1700.0f*deltaTime));
-		}
+		GetCharacterMovement()->MaxAcceleration = acceleration[phase];
+		GetCharacterMovement()->MaxWalkSpeed = maxSpeed[phase];
+		GetCharacterMovement()->JumpZVelocity = jumpSpeed[phase];
+		if(GetCharacterMovement()->Velocity.Z<0.0f && gliding[phase] != 0.0f) GetCharacterMovement()->Velocity.Z = -50.0f;
 	}
 	else {
 		transforming = true;
 		if (targetPhase == 0) {
 			if (m1 - deltaTime * morphTransSpeed > 0.0f) m1 -= deltaTime * morphTransSpeed;
 			else m1 = 0.0f;
-			
 			if (m1 == 0.0f && m2 == 0.0f && m3 == 0.0f) phase = 0;
 		}
 		else {
 			if (m1 + deltaTime * morphTransSpeed < 1.0f) m1 += deltaTime * morphTransSpeed;
 			else m1 = 1.0f;
-
-			if (m1 == 1.0f && m2 == 0.0f && m3 == 0.0f) phase = 1;
+			if (m1 == 1.0f && m2 == 0.0f && m3 == 0.0f) {
+				phase = 1;
+				GetCharacterMovement()->Velocity.Z = 0.0f;
+			}
 		} //GetMesh()->SetMorphTarget("capMorph", m1);
 	}
 }
@@ -119,9 +120,9 @@ void AmonkeyCharacter::dJump() {
 	if (GetCharacterMovement()->IsMovingOnGround()) {
 		ACharacter::Jump();
 	}
-	else if (!ACharacter::bPressedJump && !doubleJumping && jumpCounter<airJumps) {
+	else if (!ACharacter::bPressedJump && !doubleJumping && jumpCounter<airJumps && doubleJumpSpeed[phase] != 0.0f) {
 		GetCharacterMovement()->Velocity.Z = 0.0f;
-		GetCharacterMovement()->AddImpulse(FVector(0.0f, 0.0f, 650.0f));
+		GetCharacterMovement()->AddImpulse(FVector(0.0f, 0.0f, doubleJumpSpeed[phase]));
 		jumpCounter++;
 		doubleJumping = true;
 	}
