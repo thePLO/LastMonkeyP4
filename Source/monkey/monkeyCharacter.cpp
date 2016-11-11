@@ -63,7 +63,7 @@ void AmonkeyCharacter::CTick(float deltaTime) {
 		else {
 			GetCharacterMovement()->JumpZVelocity = 500.f;
 			GetCharacterMovement()->MaxWalkSpeed = 400.0f;
-			GetCharacterMovement()->AddImpulse(FVector(0.0f, 0.0f, 1700.0f*deltaTime));
+			if(GetCharacterMovement()->Velocity.Z<0.0f) GetCharacterMovement()->AddImpulse(FVector(0.0f, 0.0f, 1700.0f*deltaTime));
 		}
 	}
 	else {
@@ -121,7 +121,7 @@ void AmonkeyCharacter::dJump() {
 	}
 	else if (!ACharacter::bPressedJump && !doubleJumping && jumpCounter<airJumps) {
 		GetCharacterMovement()->Velocity.Z = 0.0f;
-		GetCharacterMovement()->AddImpulse(FVector(0.0f, 0.0f, 50.0f));
+		GetCharacterMovement()->AddImpulse(FVector(0.0f, 0.0f, 650.0f));
 		jumpCounter++;
 		doubleJumping = true;
 	}
