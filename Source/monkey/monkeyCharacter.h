@@ -20,6 +20,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "SunShine")
 		void CTick(float deltaTime);
+	UFUNCTION(BlueprintCallable, Category = "SunShine")
+		float getPhaseTimer(int a);
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
@@ -45,7 +47,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool transforming = false;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	float morphTransSpeed = 3.0f;
+	float morphTransSpeed = 5.0f;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float recoveryRate = 1.5f;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	float m1 = 0.0f;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -59,7 +63,6 @@ public:
 	int airJumps = 1;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int jumpCounter = 0;
-
 	UPROPERTY(VisibleAnywhere)
 	float acceleration[4] = {0.0f,0.0f,0.0f,0.0f};
 	UPROPERTY(VisibleAnywhere)
@@ -70,13 +73,18 @@ public:
 	float doubleJumpSpeed[4] = { 0.0f,0.0f,0.0f,0.0f };
 	UPROPERTY(VisibleAnywhere)
 	float gliding[4] = { 0.0f,0.0f,0.0f,0.0f };
+	UPROPERTY(VisibleAnywhere)
+	float morph1[4] = { 0.0f,0.0f,0.0f,0.0f };
+	UPROPERTY(VisibleAnywhere)
+	float phaseTimes[4] = { 0.0f,0.0f,0.0f,0.0f };
+	UPROPERTY(VisibleAnywhere)
+	float phaseTimers[4] = { 0.0f,0.0f,0.0f,0.0f };
 
 protected:
 	void dJump(); 
 	void dStopJumping();
-	inline void toPhase0() { if (!transforming) targetPhase = 0; }
-	inline void toPhase1() { if (!transforming) targetPhase = 1; }
-
+	inline void toPhase0() { targetPhase = 0; }
+	inline void toPhase1() { targetPhase = 1; }
 	/** Resets HMD orientation in VR. */
 	void OnResetVR();
 

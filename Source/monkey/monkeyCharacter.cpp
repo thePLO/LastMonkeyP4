@@ -52,35 +52,56 @@ AmonkeyCharacter::AmonkeyCharacter()
 	acceleration[2] = 500.0f; maxSpeed[2] = 450.0f; jumpSpeed[2] = 450.0f; doubleJumpSpeed[2] = 450.0f; gliding[2] = 0.0f;
 	acceleration[3] = 500.0f; maxSpeed[3] = 800.0f; jumpSpeed[3] = 450.0f; doubleJumpSpeed[3] = 450.0f; gliding[3] = 0.0f;
 
+	morph1[0] = 0.0f; morph1[1] = 1.0f; morph1[2] = 0.0f; morph1[3] = 0.0f; //cap
+
+	phaseTimes[0] = -1.0f; phaseTimes[1] = 1.0f; phaseTimes[2] = 1.0f; phaseTimes[3] = 1.0f;
+
 	GetCharacterMovement()->AirControl = 1.0;
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
 
+float AmonkeyCharacter::getPhaseTimer(int a) {
+	return phaseTimers[a]; 
+}
+
 void AmonkeyCharacter::CTick(float deltaTime) {
 	if (GetCharacterMovement()->IsMovingOnGround()) jumpCounter = 0;
-	if (targetPhase == phase) {
+	for (int i = 1; i < 4; i++) {
+		if (phase == i) {
+			if (phaseTimers[i] - deltaTime > 0.0f) phaseTimers[i] -= deltaTime;
+			else {
+				phaseTimers[i] = 0.0f;
+				targetPhase = 0;
+			}
+		}
+		else {
+			if (phaseTimers[i] + deltaTime*recoveryRate < phaseTimes[i]) phaseTimers[i] += deltaTime*recoveryRate;
+			else {
+				phaseTimers[i] = phaseTimes[i];
+			}
+		}
+	}
+	if (targetPhase == phase && (m1== morph1[phase])) {
 		transforming = false;
 		GetCharacterMovement()->MaxAcceleration = acceleration[phase];
 		GetCharacterMovement()->MaxWalkSpeed = maxSpeed[phase];
 		GetCharacterMovement()->JumpZVelocity = jumpSpeed[phase];
-		if(GetCharacterMovement()->Velocity.Z<0.0f && gliding[phase] != 0.0f) GetCharacterMovement()->Velocity.Z = -50.0f;
+		if(GetCharacterMovement()->Velocity.Z<0.0f && gliding[phase] != 0.0f) GetCharacterMovement()->Velocity.Z = gliding[phase];
 	}
 	else {
 		transforming = true;
-		if (targetPhase == 0) {
-			if (m1 - deltaTime * morphTransSpeed > 0.0f) m1 -= deltaTime * morphTransSpeed;
-			else m1 = 0.0f;
-			if (m1 == 0.0f && m2 == 0.0f && m3 == 0.0f) phase = 0;
+		if (m1 > morph1[targetPhase]) {
+			if (m1 - deltaTime * morphTransSpeed > morph1[targetPhase]) m1 -= deltaTime * morphTransSpeed;
+			else m1 = morph1[targetPhase];
+		}else if (m1 < morph1[targetPhase]) {
+			if (m1 + deltaTime * morphTransSpeed < morph1[targetPhase]) m1 += deltaTime * morphTransSpeed;
+			else m1 = morph1[targetPhase];
 		}
-		else {
-			if (m1 + deltaTime * morphTransSpeed < 1.0f) m1 += deltaTime * morphTransSpeed;
-			else m1 = 1.0f;
-			if (m1 == 1.0f && m2 == 0.0f && m3 == 0.0f) {
-				phase = 1;
-				GetCharacterMovement()->Velocity.Z = 0.0f;
-			}
-		} //GetMesh()->SetMorphTarget("capMorph", m1);
+		if (m1 == morph1[targetPhase] /*&& m2 == morph2[targetPhase] && m3 == morph3[targetPhase]*/) {
+			phase = targetPhase;
+			if(phase==1) GetCharacterMovement()->Velocity.Z = 0.0f;
+		}
 	}
 }
 
@@ -96,6 +117,7 @@ void AmonkeyCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerIn
 	
 	PlayerInputComponent->BindAction("Phase0", IE_Pressed, this, &AmonkeyCharacter::toPhase0);
 	PlayerInputComponent->BindAction("Phase1", IE_Pressed, this, &AmonkeyCharacter::toPhase1);
+	PlayerInputComponent->BindAction("Phase1", IE_Released, this, &AmonkeyCharacter::toPhase0);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AmonkeyCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AmonkeyCharacter::MoveRight);
