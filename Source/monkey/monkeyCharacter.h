@@ -57,26 +57,26 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	float m3 = 0.0f;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool doubleJumping = false;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int airJumps = 1;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int jumpCounter = 0;
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(EditAnywhere)
 	float acceleration[4] = {0.0f,0.0f,0.0f,0.0f};
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(EditAnywhere)
 	float maxSpeed[4] = { 0.0f,0.0f,0.0f,0.0f };
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(EditAnywhere)
 	float jumpSpeed[4] = { 0.0f,0.0f,0.0f,0.0f };
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(EditAnywhere)
 	float doubleJumpSpeed[4] = { 0.0f,0.0f,0.0f,0.0f };
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(EditAnywhere)
 	float gliding[4] = { 0.0f,0.0f,0.0f,0.0f };
 	UPROPERTY(VisibleAnywhere)
 	float morph1[4] = { 0.0f,0.0f,0.0f,0.0f };
-	UPROPERTY(VisibleAnywhere)
-	float phaseTimes[4] = { 0.0f,0.0f,0.0f,0.0f };
+	UPROPERTY(EditAnywhere)
+	float phaseTimes[4] = { 1.0f,1.0f,1.0f,1.0f };
 	UPROPERTY(VisibleAnywhere)
 	float phaseTimers[4] = { 0.0f,0.0f,0.0f,0.0f };
 

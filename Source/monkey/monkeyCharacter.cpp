@@ -54,15 +54,13 @@ AmonkeyCharacter::AmonkeyCharacter()
 
 	morph1[0] = 0.0f; morph1[1] = 1.0f; morph1[2] = 0.0f; morph1[3] = 0.0f; //cap
 
-	phaseTimes[0] = -1.0f; phaseTimes[1] = 1.0f; phaseTimes[2] = 1.0f; phaseTimes[3] = 1.0f;
-
 	GetCharacterMovement()->AirControl = 1.0;
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
 
 float AmonkeyCharacter::getPhaseTimer(int a) {
-	return phaseTimers[a]; 
+	return phaseTimers[a];
 }
 
 void AmonkeyCharacter::CTick(float deltaTime) {
