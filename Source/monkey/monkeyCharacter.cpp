@@ -53,6 +53,7 @@ AmonkeyCharacter::AmonkeyCharacter()
 	acceleration[3] = 500.0f; maxSpeed[3] = 600.0f; jumpSpeed[3] = 450.0f; doubleJumpSpeed[3] = 450.0f; gliding[3] = 0.0f;
 
 	morph1[0] = 0.0f; morph1[1] = 1.0f; morph1[2] = 0.0f; morph1[3] = 0.0f; //cap
+	morph2[0] = 0.0f; morph2[1] = 0.0f; morph2[2] = 1.0f; morph2[3] = 0.0f; //braços
 
 	GetCharacterMovement()->AirControl = 1.0;
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
@@ -61,6 +62,9 @@ AmonkeyCharacter::AmonkeyCharacter()
 
 float AmonkeyCharacter::getPhaseTimer(int a) {
 	return phaseTimers[a];
+}
+float AmonkeyCharacter::getPhaseTimes(int a) {
+	return phaseTimes[a];
 }
 
 void AmonkeyCharacter::CTick(float deltaTime) {
@@ -80,6 +84,7 @@ void AmonkeyCharacter::CTick(float deltaTime) {
 			}
 		}
 	}
+
 	if (targetPhase == phase && (m1== morph1[phase])) {
 		transforming = false;
 		GetCharacterMovement()->MaxAcceleration = acceleration[phase];
@@ -96,7 +101,16 @@ void AmonkeyCharacter::CTick(float deltaTime) {
 			if (m1 + deltaTime * morphTransSpeed < morph1[targetPhase]) m1 += deltaTime * morphTransSpeed;
 			else m1 = morph1[targetPhase];
 		}
-		if (m1 == morph1[targetPhase] /*&& m2 == morph2[targetPhase] && m3 == morph3[targetPhase]*/) {
+		if (m2 > morph2[targetPhase]) {
+			if (m2 - deltaTime * morphTransSpeed > morph2[targetPhase]) m2 -= deltaTime * morphTransSpeed;
+			else m2 = morph2[targetPhase];
+		}
+		else if (m2 < morph2[targetPhase]) {
+			if (m2 + deltaTime * morphTransSpeed < morph2[targetPhase]) m2 += deltaTime * morphTransSpeed;
+			else m2 = morph2[targetPhase];
+		}
+
+		if (m1 == morph1[targetPhase] && m2 == morph2[targetPhase]/* && m3 == morph3[targetPhase]*/) {
 			phase = targetPhase;
 			if(phase==1) GetCharacterMovement()->Velocity.Z = 0.0f;
 		}
@@ -116,6 +130,8 @@ void AmonkeyCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerIn
 	PlayerInputComponent->BindAction("Phase0", IE_Pressed, this, &AmonkeyCharacter::toPhase0);
 	PlayerInputComponent->BindAction("Phase1", IE_Pressed, this, &AmonkeyCharacter::toPhase1);
 	PlayerInputComponent->BindAction("Phase1", IE_Released, this, &AmonkeyCharacter::toPhase0);
+	PlayerInputComponent->BindAction("Phase2", IE_Pressed, this, &AmonkeyCharacter::toPhase2);
+	PlayerInputComponent->BindAction("Phase2", IE_Released, this, &AmonkeyCharacter::toPhase0);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AmonkeyCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AmonkeyCharacter::MoveRight);

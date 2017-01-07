@@ -8,6 +8,7 @@ AmonkeyGameMode::AmonkeyGameMode()
 {
 	// set default pawn class to our Blueprinted character
 	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/ThirdPersonCharacter"));
+	static ConstructorHelpers::FClassFinder<SWidget> hudCDs(TEXT("/Game/hud"));
 	if (PlayerPawnBPClass.Class != NULL)
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;

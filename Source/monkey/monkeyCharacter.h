@@ -22,6 +22,8 @@ public:
 		void CTick(float deltaTime);
 	UFUNCTION(BlueprintCallable, Category = "SunShine")
 		float getPhaseTimer(int a);
+	UFUNCTION(BlueprintCallable, Category = "SunShine")
+		float getPhaseTimes(int a);
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
@@ -74,7 +76,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	float gliding[4] = { 0.0f,0.0f,0.0f,0.0f };
 	UPROPERTY(VisibleAnywhere)
-	float morph1[4] = { 0.0f,0.0f,0.0f,0.0f };
+		float morph1[4] = { 0.0f,0.0f,0.0f,0.0f };
+	UPROPERTY(VisibleAnywhere)
+		float morph2[4] = { 0.0f,0.0f,0.0f,0.0f };
 	UPROPERTY(EditAnywhere)
 	float phaseTimes[4] = { 1.0f,1.0f,1.0f,1.0f };
 	UPROPERTY(VisibleAnywhere)
@@ -85,6 +89,7 @@ protected:
 	void dStopJumping();
 	inline void toPhase0() { targetPhase = 0; }
 	inline void toPhase1() { targetPhase = 1; }
+	inline void toPhase2() { targetPhase = 2; }
 	/** Resets HMD orientation in VR. */
 	void OnResetVR();
 
