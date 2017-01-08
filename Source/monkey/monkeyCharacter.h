@@ -47,7 +47,13 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int phase = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	bool transforming = false;
+		bool transforming = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		bool attaking = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		float attTimer = 0.0f; 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		float attCd = 0.0f;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	float morphTransSpeed = 5.0f;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -80,16 +86,22 @@ public:
 	UPROPERTY(VisibleAnywhere)
 		float morph2[4] = { 0.0f,0.0f,0.0f,0.0f };
 	UPROPERTY(EditAnywhere)
-	float phaseTimes[4] = { 1.0f,1.0f,1.0f,1.0f };
+	float phaseTimes[4] = { 5.0f,5.0f,5.0f,5.0f };
 	UPROPERTY(VisibleAnywhere)
 	float phaseTimers[4] = { 0.0f,0.0f,0.0f,0.0f };
+	UPROPERTY(VisibleAnywhere)
+		int inputState[3] = { 0,0,0 };
 
 protected:
 	void dJump(); 
 	void dStopJumping();
+	void Attack();
+	void modInput(int index, bool state);
 	inline void toPhase0() { targetPhase = 0; }
-	inline void toPhase1() { targetPhase = 1; }
-	inline void toPhase2() { targetPhase = 2; }
+	inline void toPhase1() { modInput(1, true); }
+	inline void outPhase1() { modInput(1, false);}
+	inline void toPhase2() { modInput(2, true);}
+	inline void outPhase2() { modInput(2, false); }
 	/** Resets HMD orientation in VR. */
 	void OnResetVR();
 

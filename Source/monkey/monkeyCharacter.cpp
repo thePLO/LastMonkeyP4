@@ -85,7 +85,7 @@ void AmonkeyCharacter::CTick(float deltaTime) {
 		}
 	}
 
-	if (targetPhase == phase && (m1== morph1[phase])) {
+	if (targetPhase == phase && (m1== morph1[phase]) && m2 == morph2[targetPhase]) {
 		transforming = false;
 		GetCharacterMovement()->MaxAcceleration = acceleration[phase];
 		GetCharacterMovement()->MaxWalkSpeed = maxSpeed[phase];
@@ -115,6 +115,11 @@ void AmonkeyCharacter::CTick(float deltaTime) {
 			if(phase==1) GetCharacterMovement()->Velocity.Z = 0.0f;
 		}
 	}
+	if (attaking) {
+		attTimer -= deltaTime;
+		if (attTimer <= 0) attaking = false;
+	}
+	if (attCd > 0) attCd -= deltaTime;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -127,11 +132,13 @@ void AmonkeyCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerIn
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AmonkeyCharacter::dJump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AmonkeyCharacter::dStopJumping);
 	
+	PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &AmonkeyCharacter::Attack);
+	
 	PlayerInputComponent->BindAction("Phase0", IE_Pressed, this, &AmonkeyCharacter::toPhase0);
 	PlayerInputComponent->BindAction("Phase1", IE_Pressed, this, &AmonkeyCharacter::toPhase1);
-	PlayerInputComponent->BindAction("Phase1", IE_Released, this, &AmonkeyCharacter::toPhase0);
+	PlayerInputComponent->BindAction("Phase1", IE_Released, this, &AmonkeyCharacter::outPhase1);
 	PlayerInputComponent->BindAction("Phase2", IE_Pressed, this, &AmonkeyCharacter::toPhase2);
-	PlayerInputComponent->BindAction("Phase2", IE_Released, this, &AmonkeyCharacter::toPhase0);
+	PlayerInputComponent->BindAction("Phase2", IE_Released, this, &AmonkeyCharacter::outPhase2);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AmonkeyCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AmonkeyCharacter::MoveRight);
@@ -166,6 +173,25 @@ void AmonkeyCharacter::dJump() {
 void AmonkeyCharacter::dStopJumping() {
 	&ACharacter::StopJumping;
 	doubleJumping = false;
+}
+
+void AmonkeyCharacter::Attack() {
+	if (phase == 2 && !attaking && attCd <= 0.0f) {
+		attaking = true;
+		attTimer = 0.3f;
+		attCd = 0.5f;
+	}
+}
+
+void AmonkeyCharacter::modInput(int index, bool state)
+{
+	if(state) inputState[index - 1] = 1;
+	else inputState[index - 1] = 0;
+
+	if (state) targetPhase = index;
+	else {
+		if (phase == index) targetPhase = 0;
+	}
 }
 
 void AmonkeyCharacter::OnResetVR()
