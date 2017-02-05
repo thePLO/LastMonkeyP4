@@ -1,23 +1,9 @@
-// Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
-
 #include "monkey.h"
 #include "Kismet/HeadMountedDisplayFunctionLibrary.h"
 #include "monkeyCharacter.h"
 
-//////////////////////////////////////////////////////////////////////////
-// AmonkeyCharacter
-
 AmonkeyCharacter::AmonkeyCharacter()
 {
-	/*static ConstructorHelpers::FObjectFinder<USkeletalMesh> phase0MeshAsset(TEXT("/Game/character/default/default"));
-	phase0Mesh = CreateDefaultSubobject<USkeletalMesh>(TEXT("Mesh0"));
-	phase0Mesh->
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> phase1MeshAsset(TEXT("/Game/character/head/head"));
-	phase1Mesh = CreateDefaultSubobject<USkeletalMesh>(TEXT("Mesh1"));*/
-	
-	//phase0Mesh = LoadObject<USkeletalMesh>(NULL, TEXT("/Game/character/default/default"), NULL, LOAD_None, NULL);
-	//phase1Mesh = LoadObject<USkeletalMesh>(NULL, TEXT("/Game/character/head/head"), NULL, LOAD_None, NULL);
-	
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
@@ -30,7 +16,7 @@ AmonkeyCharacter::AmonkeyCharacter()
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
-	// Configure character movement
+	// Configure default character movement
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // ...at this rotation rate
 	GetCharacterMovement()->JumpZVelocity = 600.f;
@@ -47,28 +33,32 @@ AmonkeyCharacter::AmonkeyCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
-	acceleration[0] = 900.0f; maxSpeed[0] = 400.0f; jumpSpeed[0] = 650.0f; doubleJumpSpeed[0] = 650.0f; gliding[0] = 0.0f;
-	acceleration[1] = 900.0f; maxSpeed[1] = 250.0f; jumpSpeed[1] = 450.0f; doubleJumpSpeed[1] = 0.0f; gliding[1] = -50.0f;
-	acceleration[2] = 500.0f; maxSpeed[2] = 250.0f; jumpSpeed[2] = 450.0f; doubleJumpSpeed[2] = 450.0f; gliding[2] = 0.0f;
-	acceleration[3] = 500.0f; maxSpeed[3] = 600.0f; jumpSpeed[3] = 450.0f; doubleJumpSpeed[3] = 450.0f; gliding[3] = 0.0f;
+	//set values for different phases
+	for (int i = 0; i < 4; i++) {
+		phaseTimes[i] = 4.0f;
+		phaseTimers[i] = 4.0f;
+	}
 
-	morph1[0] = 0.0f; morph1[1] = 1.0f; morph1[2] = 0.0f; morph1[3] = 0.0f; //cap
-	morph2[0] = 0.0f; morph2[1] = 0.0f; morph2[2] = 1.0f; morph2[3] = 0.0f; //braços
+	acceleration[0] = 900.0f; maxSpeed[0] = 400.0f; jumpSpeed[0] = 650.0f; doubleJumpSpeed[0] = 650.0f; gliding[0] = 0.0f; //default
+	acceleration[1] = 900.0f; maxSpeed[1] = 250.0f; jumpSpeed[1] = 450.0f; doubleJumpSpeed[1] = 0.0f;   gliding[1] =-50.0f;//head
+	acceleration[2] = 500.0f; maxSpeed[2] = 250.0f; jumpSpeed[2] = 450.0f; doubleJumpSpeed[2] = 450.0f; gliding[2] = 0.0f; //arms
+	acceleration[3] = 500.0f; maxSpeed[3] = 600.0f; jumpSpeed[3] = 450.0f; doubleJumpSpeed[3] = 450.0f; gliding[3] = 0.0f; //feet
+
+	//-----head------------arms---------
+	morph1[0] = 0.0f; morph2[0] = 0.0f; //default
+	morph1[1] = 1.0f; morph2[1] = 0.0f; //head
+	morph1[2] = 0.0f; morph2[2] = 1.0f; //arms
+	morph1[3] = 0.0f; morph2[3] = 0.0f; //feet
 
 	GetCharacterMovement()->AirControl = 1.0;
-	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
-	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
 
-float AmonkeyCharacter::getPhaseTimer(int a) {
-	return phaseTimers[a];
-}
-float AmonkeyCharacter::getPhaseTimes(int a) {
-	return phaseTimes[a];
+float AmonkeyCharacter::getPhaseRel(int a) {
+	return  phaseTimers[a]/phaseTimes[a];
 }
 
 void AmonkeyCharacter::CTick(float deltaTime) {
-	if (GetCharacterMovement()->IsMovingOnGround()) jumpCounter = 0;
+	//phase timers update
 	for (int i = 1; i < 4; i++) {
 		if (phase == i) {
 			if (phaseTimers[i] - deltaTime > 0.0f) phaseTimers[i] -= deltaTime;
@@ -84,15 +74,14 @@ void AmonkeyCharacter::CTick(float deltaTime) {
 			}
 		}
 	}
-
+	//update morphs or stats phase
 	if (targetPhase == phase && (m1== morph1[phase]) && m2 == morph2[targetPhase]) {
 		transforming = false;
 		GetCharacterMovement()->MaxAcceleration = acceleration[phase];
 		GetCharacterMovement()->MaxWalkSpeed = maxSpeed[phase];
 		GetCharacterMovement()->JumpZVelocity = jumpSpeed[phase];
 		if(GetCharacterMovement()->Velocity.Z<0.0f && gliding[phase] != 0.0f) GetCharacterMovement()->Velocity.Z = gliding[phase];
-	}
-	else {
+	} else {
 		transforming = true;
 		if (m1 > morph1[targetPhase]) {
 			if (m1 - deltaTime * morphTransSpeed > morph1[targetPhase]) m1 -= deltaTime * morphTransSpeed;
@@ -101,6 +90,7 @@ void AmonkeyCharacter::CTick(float deltaTime) {
 			if (m1 + deltaTime * morphTransSpeed < morph1[targetPhase]) m1 += deltaTime * morphTransSpeed;
 			else m1 = morph1[targetPhase];
 		}
+
 		if (m2 > morph2[targetPhase]) {
 			if (m2 - deltaTime * morphTransSpeed > morph2[targetPhase]) m2 -= deltaTime * morphTransSpeed;
 			else m2 = morph2[targetPhase];
@@ -115,6 +105,7 @@ void AmonkeyCharacter::CTick(float deltaTime) {
 			if(phase==1) GetCharacterMovement()->Velocity.Z = 0.0f;
 		}
 	}
+	//updata attack vars
 	if (attaking) {
 		attTimer -= deltaTime;
 		if (attTimer <= 0) attaking = false;
@@ -125,9 +116,8 @@ void AmonkeyCharacter::CTick(float deltaTime) {
 //////////////////////////////////////////////////////////////////////////
 // Input
 
-void AmonkeyCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
-{
-	// Set up gameplay key bindings
+void AmonkeyCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent){
+
 	check(PlayerInputComponent);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AmonkeyCharacter::dJump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AmonkeyCharacter::dStopJumping);
@@ -135,41 +125,35 @@ void AmonkeyCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerIn
 	PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &AmonkeyCharacter::Attack);
 	
 	PlayerInputComponent->BindAction("Phase0", IE_Pressed, this, &AmonkeyCharacter::toPhase0);
+
 	PlayerInputComponent->BindAction("Phase1", IE_Pressed, this, &AmonkeyCharacter::toPhase1);
 	PlayerInputComponent->BindAction("Phase1", IE_Released, this, &AmonkeyCharacter::outPhase1);
+
 	PlayerInputComponent->BindAction("Phase2", IE_Pressed, this, &AmonkeyCharacter::toPhase2);
 	PlayerInputComponent->BindAction("Phase2", IE_Released, this, &AmonkeyCharacter::outPhase2);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AmonkeyCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AmonkeyCharacter::MoveRight);
 
-	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
-	// "turn" handles devices that provide an absolute delta, such as a mouse.
-	// "turnrate" is for devices that we choose to treat as a rate of change, such as an analog joystick
 	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
 	PlayerInputComponent->BindAxis("TurnRate", this, &AmonkeyCharacter::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AmonkeyCharacter::LookUpAtRate);
-
-	// handle touch devices
-	PlayerInputComponent->BindTouch(IE_Pressed, this, &AmonkeyCharacter::TouchStarted);
-	PlayerInputComponent->BindTouch(IE_Released, this, &AmonkeyCharacter::TouchStopped);
-
-	// VR headset functionality
-	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AmonkeyCharacter::OnResetVR);
 }
 
 void AmonkeyCharacter::dJump() {
 	if (GetCharacterMovement()->IsMovingOnGround()) {
+		jumpCounter = 0;
 		ACharacter::Jump();
 	}
-	else if (!ACharacter::bPressedJump && !doubleJumping && jumpCounter<airJumps && doubleJumpSpeed[phase] != 0.0f) {
+	else if (!ACharacter::bPressedJump && jumpCounter<airJumps && doubleJumpSpeed[phase] != 0.0f) {
 		GetCharacterMovement()->Velocity.Z = 0.0f;
 		GetCharacterMovement()->AddImpulse(FVector(0.0f, 0.0f, doubleJumpSpeed[phase]));
 		jumpCounter++;
 		doubleJumping = true;
 	}
 }
+
 void AmonkeyCharacter::dStopJumping() {
 	&ACharacter::StopJumping;
 	doubleJumping = false;
@@ -178,60 +162,33 @@ void AmonkeyCharacter::dStopJumping() {
 void AmonkeyCharacter::Attack() {
 	if (phase == 2 && !attaking && attCd <= 0.0f) {
 		attaking = true;
-		attTimer = 0.3f;
-		attCd = 0.5f;
+		attTimer = 0.3f; //attack duration
+		attCd = 0.5f; //time till next attack
 	}
 }
 
-void AmonkeyCharacter::modInput(int index, bool state)
-{
+void AmonkeyCharacter::modInput(int index, bool state) {
 	if(state) inputState[index - 1] = 1;
 	else inputState[index - 1] = 0;
 
 	if (state) targetPhase = index;
 	else {
-		if (phase == index) targetPhase = 0;
+		if (phase == index) targetPhase = 0;//return def if release actual
 	}
 }
 
-void AmonkeyCharacter::OnResetVR()
-{
-	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
-}
-
-void AmonkeyCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
-{
-	// jump, but only on the first touch
-	if (FingerIndex == ETouchIndex::Touch1)
-	{
-		Jump();
-	}
-}
-
-void AmonkeyCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
-{
-	if (FingerIndex == ETouchIndex::Touch1)
-	{
-		StopJumping();
-	}
-}
-
-void AmonkeyCharacter::TurnAtRate(float Rate)
-{
+void AmonkeyCharacter::TurnAtRate(float Rate) {
 	// calculate delta for this frame from the rate information
 	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
 }
 
-void AmonkeyCharacter::LookUpAtRate(float Rate)
-{
+void AmonkeyCharacter::LookUpAtRate(float Rate) {
 	// calculate delta for this frame from the rate information
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 }
 
-void AmonkeyCharacter::MoveForward(float Value)
-{
-	if ((Controller != NULL) && (Value != 0.0f))
-	{
+void AmonkeyCharacter::MoveForward(float Value) {
+	if ((Controller != NULL) && (Value != 0.0f)) {
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
@@ -242,10 +199,8 @@ void AmonkeyCharacter::MoveForward(float Value)
 	}
 }
 
-void AmonkeyCharacter::MoveRight(float Value)
-{
-	if ( (Controller != NULL) && (Value != 0.0f) )
-	{
+void AmonkeyCharacter::MoveRight(float Value) {
+	if ( (Controller != NULL) && (Value != 0.0f) ) {
 		// find out which way is right
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);

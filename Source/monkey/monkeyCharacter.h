@@ -1,4 +1,3 @@
-// Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
 #pragma once
 #include "GameFramework/Character.h"
 #include "monkeyCharacter.generated.h"
@@ -7,23 +6,17 @@ UCLASS(config=Game)
 class AmonkeyCharacter : public ACharacter
 {
 	GENERATED_BODY()
-
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
-
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
 public:
 	AmonkeyCharacter();
 
-	UFUNCTION(BlueprintCallable, Category = "SunShine")
-		void CTick(float deltaTime);
-	UFUNCTION(BlueprintCallable, Category = "SunShine")
-		float getPhaseTimer(int a);
-	UFUNCTION(BlueprintCallable, Category = "SunShine")
-		float getPhaseTimes(int a);
+	UFUNCTION(BlueprintCallable, Category = "SunShine")	void CTick(float deltaTime);
+	UFUNCTION(BlueprintCallable, Category = "SunShine")	float getPhaseRel(int a);
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
@@ -33,64 +26,32 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
 
-	/*UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = CharacterMesh, meta = (AllowPrivateAccess = "true"))
-		USkeletalMesh* phase0Mesh;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = CharacterMesh, meta = (AllowPrivateAccess = "true"))
-		USkeletalMesh* phase1Mesh;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = CharacterMesh, meta = (AllowPrivateAccess = "true"))
-		UAnimBlueprint* phase0Anim;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = CharacterMesh, meta = (AllowPrivateAccess = "true"))
-		UAnimBlueprint* phase1Anim;*/
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	int targetPhase = 0;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	int phase = 0;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		bool transforming = false;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		bool attaking = false;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		float attTimer = 0.0f; 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		float attCd = 0.0f;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	float morphTransSpeed = 5.0f;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	float recoveryRate = 1.5f;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	float m1 = 0.0f;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	float m2 = 0.0f;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	float m3 = 0.0f;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) int targetPhase = 0;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) int phase = 0;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) bool transforming = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) bool attaking = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) float attTimer = 0.0f; 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) float attCd = 0.0f;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) float morphTransSpeed = 5.0f;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) float recoveryRate = 1.5f;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) float m1 = 0.0f;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) float m2 = 0.0f;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) float m3 = 0.0f;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	bool doubleJumping = false;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	int airJumps = 1;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	int jumpCounter = 0;
-	UPROPERTY(EditAnywhere)
-	float acceleration[4] = {0.0f,0.0f,0.0f,0.0f};
-	UPROPERTY(EditAnywhere)
-	float maxSpeed[4] = { 0.0f,0.0f,0.0f,0.0f };
-	UPROPERTY(EditAnywhere)
-	float jumpSpeed[4] = { 0.0f,0.0f,0.0f,0.0f };
-	UPROPERTY(EditAnywhere)
-	float doubleJumpSpeed[4] = { 0.0f,0.0f,0.0f,0.0f };
-	UPROPERTY(EditAnywhere)
-	float gliding[4] = { 0.0f,0.0f,0.0f,0.0f };
-	UPROPERTY(VisibleAnywhere)
-		float morph1[4] = { 0.0f,0.0f,0.0f,0.0f };
-	UPROPERTY(VisibleAnywhere)
-		float morph2[4] = { 0.0f,0.0f,0.0f,0.0f };
-	UPROPERTY(EditAnywhere)
-	float phaseTimes[4] = { 5.0f,5.0f,5.0f,5.0f };
-	UPROPERTY(VisibleAnywhere)
-	float phaseTimers[4] = { 0.0f,0.0f,0.0f,0.0f };
-	UPROPERTY(VisibleAnywhere)
-		int inputState[3] = { 0,0,0 };
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) bool doubleJumping = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) int airJumps = 1;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) int jumpCounter = 0;
+
+	UPROPERTY(EditAnywhere)	float acceleration[4];
+	UPROPERTY(EditAnywhere)	float maxSpeed[4];
+	UPROPERTY(EditAnywhere)	float jumpSpeed[4];
+	UPROPERTY(EditAnywhere)	float doubleJumpSpeed[4];
+	UPROPERTY(EditAnywhere)	float gliding[4];
+	UPROPERTY(VisibleAnywhere) float morph1[4];
+	UPROPERTY(VisibleAnywhere) float morph2[4];
+	UPROPERTY(VisibleAnywhere) float phaseTimes[4];
+	UPROPERTY(VisibleAnywhere) float phaseTimers[4];
+	UPROPERTY(VisibleAnywhere) int inputState[3];
 
 protected:
 	void dJump(); 
@@ -102,32 +63,12 @@ protected:
 	inline void outPhase1() { modInput(1, false);}
 	inline void toPhase2() { modInput(2, true);}
 	inline void outPhase2() { modInput(2, false); }
-	/** Resets HMD orientation in VR. */
-	void OnResetVR();
 
-	/** Called for forwards/backward input */
 	void MoveForward(float Value);
-
-	/** Called for side to side input */
 	void MoveRight(float Value);
 
-	/** 
-	 * Called via input to turn at a given rate. 
-	 * @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
-	 */
 	void TurnAtRate(float Rate);
-
-	/**
-	 * Called via input to turn look up/down at a given rate. 
-	 * @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
-	 */
 	void LookUpAtRate(float Rate);
-
-	/** Handler for when a touch input begins. */
-	void TouchStarted(ETouchIndex::Type FingerIndex, FVector Location);
-
-	/** Handler for when a touch input stops. */
-	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);
 
 protected:
 	// APawn interface
