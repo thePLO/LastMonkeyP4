@@ -22,6 +22,10 @@ AmonkeyCharacter::AmonkeyCharacter()
 	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->AirControl = 0.8f;
 
+	//BOLA
+	GetCharacterMovement()->GroundFriction = 0.8f;
+	GetCharacterMovement()->BrakingDecelerationWalking = 1.0f;
+
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
@@ -58,6 +62,12 @@ float AmonkeyCharacter::getPhaseRel(int a) {
 }
 
 void AmonkeyCharacter::CTick(float deltaTime) {
+	FQuat quat = FQuat
+	(
+		FVector(1,0,0),
+		0.5f
+	);
+	
 	//phase timers update
 	for (int i = 1; i < 4; i++) {
 		if (phase == i) {
@@ -122,15 +132,16 @@ void AmonkeyCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerIn
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AmonkeyCharacter::dJump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AmonkeyCharacter::dStopJumping);
 	
-	PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &AmonkeyCharacter::Attack);
-	
-	PlayerInputComponent->BindAction("Phase0", IE_Pressed, this, &AmonkeyCharacter::toPhase0);
+	PlayerInputComponent->BindAction("AttackR", IE_Pressed, this, &AmonkeyCharacter::AttackR);
+	PlayerInputComponent->BindAction("AttackL", IE_Pressed, this, &AmonkeyCharacter::AttackL);
 
-	PlayerInputComponent->BindAction("Phase1", IE_Pressed, this, &AmonkeyCharacter::toPhase1);
-	PlayerInputComponent->BindAction("Phase1", IE_Released, this, &AmonkeyCharacter::outPhase1);
+	//PlayerInputComponent->BindAction("Phase0", IE_Pressed, this, &AmonkeyCharacter::toPhase0);
 
-	PlayerInputComponent->BindAction("Phase2", IE_Pressed, this, &AmonkeyCharacter::toPhase2);
-	PlayerInputComponent->BindAction("Phase2", IE_Released, this, &AmonkeyCharacter::outPhase2);
+	PlayerInputComponent->BindAction("Head", IE_Pressed, this, &AmonkeyCharacter::Head);
+	PlayerInputComponent->BindAction("Head", IE_Released, this, &AmonkeyCharacter::outHead);
+
+	PlayerInputComponent->BindAction("Ball", IE_Pressed, this, &AmonkeyCharacter::Ball);
+	PlayerInputComponent->BindAction("Ball", IE_Released, this, &AmonkeyCharacter::outBall);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AmonkeyCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AmonkeyCharacter::MoveRight);
@@ -159,7 +170,14 @@ void AmonkeyCharacter::dStopJumping() {
 	doubleJumping = false;
 }
 
-void AmonkeyCharacter::Attack() {
+void AmonkeyCharacter::AttackR() {
+	if (phase == 2 && !attaking && attCd <= 0.0f) {
+		attaking = true;
+		attTimer = 0.3f; //attack duration
+		attCd = 0.5f; //time till next attack
+	}
+}
+void AmonkeyCharacter::AttackL() {
 	if (phase == 2 && !attaking && attCd <= 0.0f) {
 		attaking = true;
 		attTimer = 0.3f; //attack duration

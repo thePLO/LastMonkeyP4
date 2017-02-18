@@ -51,18 +51,20 @@ public:
 	UPROPERTY(VisibleAnywhere) float morph2[4];
 	UPROPERTY(VisibleAnywhere) float phaseTimes[4];
 	UPROPERTY(VisibleAnywhere) float phaseTimers[4];
-	UPROPERTY(VisibleAnywhere) int inputState[3];
+
+	UPROPERTY(VisibleAnywhere) int inputState[2];
 
 protected:
 	void dJump(); 
 	void dStopJumping();
-	void Attack();
+	void AttackR();
+	void AttackL();
+	
 	void modInput(int index, bool state);
-	inline void toPhase0() { targetPhase = 0; }
-	inline void toPhase1() { modInput(1, true); }
-	inline void outPhase1() { modInput(1, false);}
-	inline void toPhase2() { modInput(2, true);}
-	inline void outPhase2() { modInput(2, false); }
+	inline void Head() { modInput(1, true); }
+	inline void outHead() { modInput(1, false);}
+	inline void Ball() { modInput(2, true);}
+	inline void outBall() { modInput(2, false); }
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);
