@@ -26,6 +26,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) float defaultGroundFriction;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) float defaultBrakingDecelerationWalking;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) int targetPhase = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) int phase = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) bool transforming = false;
@@ -34,6 +37,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) float attCd = 0.0f;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) float morphTransSpeed = 5.0f;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) float recoveryRate = 1.5f;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) float m1 = 0.0f;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) float m2 = 0.0f;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) float m3 = 0.0f;
@@ -49,10 +53,11 @@ public:
 	UPROPERTY(EditAnywhere)	float gliding[4];
 	UPROPERTY(VisibleAnywhere) float morph1[4];
 	UPROPERTY(VisibleAnywhere) float morph2[4];
+	UPROPERTY(VisibleAnywhere) float morph3[4];
 	UPROPERTY(VisibleAnywhere) float phaseTimes[4];
 	UPROPERTY(VisibleAnywhere) float phaseTimers[4];
 
-	UPROPERTY(VisibleAnywhere) int inputState[2];
+	UPROPERTY(VisibleAnywhere) int inputState[3];
 
 protected:
 	void dJump(); 

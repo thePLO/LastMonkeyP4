@@ -22,10 +22,6 @@ AmonkeyCharacter::AmonkeyCharacter()
 	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->AirControl = 0.8f;
 
-	//BOLA
-	GetCharacterMovement()->GroundFriction = 0.8f;
-	GetCharacterMovement()->BrakingDecelerationWalking = 1.0f;
-
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
@@ -43,16 +39,20 @@ AmonkeyCharacter::AmonkeyCharacter()
 		phaseTimers[i] = 4.0f;
 	}
 
-	acceleration[0] = 900.0f; maxSpeed[0] = 400.0f; jumpSpeed[0] = 650.0f; doubleJumpSpeed[0] = 650.0f; gliding[0] = 0.0f; //default
-	acceleration[1] = 900.0f; maxSpeed[1] = 250.0f; jumpSpeed[1] = 450.0f; doubleJumpSpeed[1] = 0.0f;   gliding[1] =-50.0f;//head
-	acceleration[2] = 500.0f; maxSpeed[2] = 250.0f; jumpSpeed[2] = 450.0f; doubleJumpSpeed[2] = 450.0f; gliding[2] = 0.0f; //arms
-	acceleration[3] = 500.0f; maxSpeed[3] = 600.0f; jumpSpeed[3] = 450.0f; doubleJumpSpeed[3] = 450.0f; gliding[3] = 0.0f; //feet
+	defaultGroundFriction = GetCharacterMovement()->GroundFriction;
+	defaultBrakingDecelerationWalking = GetCharacterMovement()->BrakingDecelerationWalking;
 
-	//-----head------------arms---------
-	morph1[0] = 0.0f; morph2[0] = 0.0f; //default
-	morph1[1] = 1.0f; morph2[1] = 0.0f; //head
-	morph1[2] = 0.0f; morph2[2] = 1.0f; //arms
-	morph1[3] = 0.0f; morph2[3] = 0.0f; //feet
+
+	acceleration[0] = 900.0f; maxSpeed[0] = 400.0f; jumpSpeed[0] = 650.0f; doubleJumpSpeed[0] = 650.0f; gliding[0] = 0.0f; //default
+	acceleration[1] = 900.0f; maxSpeed[1] = 250.0f; jumpSpeed[1] = 450.0f; doubleJumpSpeed[1] = 0.0f;   gliding[1] =-40.0f;//head
+	acceleration[2] = 200.0f; maxSpeed[2] = 1000.0f;jumpSpeed[2] = 450.0f; doubleJumpSpeed[2] = 450.0f; gliding[2] = 0.0f; //arms
+	acceleration[3] = 500.0f; maxSpeed[3] = 250.0f; jumpSpeed[3] = 450.0f; doubleJumpSpeed[3] = 450.0f; gliding[3] = 0.0f; //bola
+
+	//-----head------------bola--------------arms---------
+	morph1[0] = 0.0f; morph2[0] = 0.0f;  morph3[3] = 0.0f; //default
+	morph1[1] = 1.0f; morph2[1] = 0.0f;  morph3[3] = 0.0f; //head
+	morph1[2] = 0.0f; morph2[2] = 1.0f;  morph3[3] = 0.0f; //bola
+	morph1[3] = 0.0f; morph2[3] = 0.0f;  morph3[3] = 1.0f; //arms
 
 	GetCharacterMovement()->AirControl = 1.0;
 }
@@ -62,14 +62,8 @@ float AmonkeyCharacter::getPhaseRel(int a) {
 }
 
 void AmonkeyCharacter::CTick(float deltaTime) {
-	FQuat quat = FQuat
-	(
-		FVector(1,0,0),
-		0.5f
-	);
-	
 	//phase timers update
-	for (int i = 1; i < 4; i++) {
+	/*for (int i = 1; i < 4; i++) {
 		if (phase == i) {
 			if (phaseTimers[i] - deltaTime > 0.0f) phaseTimers[i] -= deltaTime;
 			else {
@@ -83,7 +77,18 @@ void AmonkeyCharacter::CTick(float deltaTime) {
 				phaseTimers[i] = phaseTimes[i];
 			}
 		}
+	}*/
+
+	//BOLA
+	if (phase == 2) {
+		GetCharacterMovement()->GroundFriction = 0.5f;
+		GetCharacterMovement()->BrakingDecelerationWalking = 0.5f;
 	}
+	else {
+		GetCharacterMovement()->GroundFriction = defaultGroundFriction;
+		GetCharacterMovement()->BrakingDecelerationWalking = defaultBrakingDecelerationWalking;
+	}
+
 	//update morphs or stats phase
 	if (targetPhase == phase && (m1== morph1[phase]) && m2 == morph2[targetPhase]) {
 		transforming = false;
@@ -110,7 +115,16 @@ void AmonkeyCharacter::CTick(float deltaTime) {
 			else m2 = morph2[targetPhase];
 		}
 
-		if (m1 == morph1[targetPhase] && m2 == morph2[targetPhase]/* && m3 == morph3[targetPhase]*/) {
+		if (m3 > morph3[targetPhase]) {
+			if (m3 - deltaTime * morphTransSpeed > morph3[targetPhase]) m3 -= deltaTime * morphTransSpeed;
+			else m3 = morph3[targetPhase];
+		}
+		else if (m3 < morph3[targetPhase]) {
+			if (m3 + deltaTime * morphTransSpeed < morph3[targetPhase]) m3 += deltaTime * morphTransSpeed;
+			else m3 = morph3[targetPhase];
+		}
+
+		if (m1 == morph1[targetPhase] && m2 == morph2[targetPhase] && m3 == morph3[targetPhase]) {
 			phase = targetPhase;
 			if(phase==1) GetCharacterMovement()->Velocity.Z = 0.0f;
 		}
@@ -118,9 +132,11 @@ void AmonkeyCharacter::CTick(float deltaTime) {
 	//updata attack vars
 	if (attaking) {
 		attTimer -= deltaTime;
-		if (attTimer <= 0) attaking = false;
+		if (attTimer <= 0) {
+			attaking = false;
+			modInput(3, false);
+		}
 	}
-	if (attCd > 0) attCd -= deltaTime;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -171,18 +187,14 @@ void AmonkeyCharacter::dStopJumping() {
 }
 
 void AmonkeyCharacter::AttackR() {
-	if (phase == 2 && !attaking && attCd <= 0.0f) {
-		attaking = true;
-		attTimer = 0.3f; //attack duration
-		attCd = 0.5f; //time till next attack
-	}
+	attaking = true;
+	attTimer = 0.5f; //attack duration
+	modInput(3, true);
 }
 void AmonkeyCharacter::AttackL() {
-	if (phase == 2 && !attaking && attCd <= 0.0f) {
-		attaking = true;
-		attTimer = 0.3f; //attack duration
-		attCd = 0.5f; //time till next attack
-	}
+	attaking = true;
+	attTimer = 0.5f; //attack duration
+	modInput(3, true);
 }
 
 void AmonkeyCharacter::modInput(int index, bool state) {
