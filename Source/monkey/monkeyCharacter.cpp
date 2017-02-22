@@ -82,7 +82,7 @@ void AmonkeyCharacter::CTick(float deltaTime) {
 	//BOLA
 	if (phase == 2) {
 		GetCharacterMovement()->GroundFriction = 0.5f;
-		GetCharacterMovement()->BrakingDecelerationWalking = 0.5f;
+		GetCharacterMovement()->BrakingDecelerationWalking = 0.3f;
 	}
 	else {
 		GetCharacterMovement()->GroundFriction = defaultGroundFriction;
