@@ -45,7 +45,7 @@ AmonkeyCharacter::AmonkeyCharacter()
 
 	acceleration[0] = 900.0f; maxSpeed[0] = 400.0f; jumpSpeed[0] = 650.0f; doubleJumpSpeed[0] = 650.0f; gliding[0] = 0.0f; //default
 	acceleration[1] = 900.0f; maxSpeed[1] = 250.0f; jumpSpeed[1] = 450.0f; doubleJumpSpeed[1] = 0.0f;   gliding[1] =-40.0f;//head
-	acceleration[2] = 200.0f; maxSpeed[2] = 1000.0f;jumpSpeed[2] = 450.0f; doubleJumpSpeed[2] = 450.0f; gliding[2] = 0.0f; //arms
+	acceleration[2] = 800.0f; maxSpeed[2] = 1000.0f;jumpSpeed[2] = 450.0f; doubleJumpSpeed[2] = 450.0f; gliding[2] = 0.0f; //arms
 	acceleration[3] = 500.0f; maxSpeed[3] = 250.0f; jumpSpeed[3] = 450.0f; doubleJumpSpeed[3] = 450.0f; gliding[3] = 0.0f; //bola
 
 	//-----head------------bola--------------arms---------
@@ -83,10 +83,12 @@ void AmonkeyCharacter::CTick(float deltaTime) {
 	if (phase == 2) {
 		GetCharacterMovement()->GroundFriction = 0.5f;
 		GetCharacterMovement()->BrakingDecelerationWalking = 0.3f;
+		GetCharacterMovement()->bOrientRotationToMovement = false;
 	}
 	else {
 		GetCharacterMovement()->GroundFriction = defaultGroundFriction;
 		GetCharacterMovement()->BrakingDecelerationWalking = defaultBrakingDecelerationWalking;
+		GetCharacterMovement()->bOrientRotationToMovement = true;
 	}
 
 	//update morphs or stats phase
